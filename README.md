@@ -2,7 +2,7 @@
 
 __Stable Diffusion Project__
 
-<Image Modeling>
+/<Image Modeling>
 </br>
 ## To Do List 👩‍🏫
 
