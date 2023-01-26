@@ -176,3 +176,5 @@ code/etc/
 0116_2/
 
 *.zip
+
+code/__pycache__/
