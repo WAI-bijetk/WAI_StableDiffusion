@@ -1,16 +1,18 @@
 # ▶1. Diffusion Custom Train (Fine Tuning)
 
+<br>
+
 기존 Stable Diffusion 모델에 원하는 이미지와 prompt를 학습시켜주는 모듈
 
-basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https://bytexd.com/how-to-use-dreambooth-to-fine-tune-stable-diffusion-colab/)
-
-[basecode-colab](https://colab.research.google.com/github/TheLastBen/fast-stable-diffusion/blob/main/fast-DreamBooth.ipynb) 
+> basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https://bytexd.com/how-to-use-dreambooth-to-fine-tune-stable-diffusion-colab/)
+>
+> [basecode-colab](https://colab.research.google.com/github/TheLastBen/fast-stable-diffusion/blob/main/fast-DreamBooth.ipynb) 
 
 ## ◎ __finetuning_stable_diffusion_for_Colab.ipynb__
 
 - __dowoloadmodel( )__ :
 
-  - Stable Diffusion 모델을 다운로드 하는 함수, 1.5버전만 지원
+  - Stable Diffusion 모델을 다운로드 하는 함수, 현재 1.5버전만 지원
 
   - 경로 : /content/stable-diffusion-v1-5
 
@@ -66,6 +68,8 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 
 # ▶2. Text to Image
 
+<br>
+
 ## ◎__TextToText.py__
 
 - __sd_texttoimg_pipeline( )__
@@ -96,6 +100,8 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 ---
 
 # ▶3. Image to Image
+
+<br>
 
 업로드한 이미지를 prompt에 맞는 이미지로 변환시켜주는 모듈
 
@@ -135,6 +141,8 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 
 # ▶4. ImageExtend
 
+<br>
+
 ## ◎ImageExtend.py
 
 - __sd_extend_crop_mask(file_name, a, b)__ :
@@ -155,3 +163,4 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 
   - crop된 이미지와 마스크를 기반으로 inpaint를 실행한 뒤, 원본 이미지와 inpaint된 이미지를 합치는 함수
 
+ 
