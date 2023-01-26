@@ -70,7 +70,7 @@
 
 <br>
 
-## ◎__TextToText.py__
+## ◎ __TextToText.py__
 
 - __sd_texttoimg_pipeline( )__
   - 설명1
