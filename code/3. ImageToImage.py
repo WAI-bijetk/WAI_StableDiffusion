@@ -1,9 +1,8 @@
 import torch
 from torch import autocast
-from diffusers import EulerDiscreteScheduler, StableDiffusionImg2ImgPipeline
+from diffusers import StableDiffusionImg2ImgPipeline
 from google.colab import files
 from PIL import Image
-from tqdm.auto import tqdm
 from random import randint
 from accelerate import Accelerator
 

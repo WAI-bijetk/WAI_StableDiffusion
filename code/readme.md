@@ -44,9 +44,9 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 
 - __sd_custom_function ()__ :
 
-  - 종합
-
----
+  - Fine Tuning을 해주는 함수
+  - token과 Session_Name을 입력해줘야 한다.
+  - 업로드하는 사진의 크기는  512*512 크기여야 하고, 이름은 prompt (1), prompt (2), prompt (3) ... 이런식으로 통일되어야 한다.
 
 - __사용예시__
 
@@ -66,7 +66,32 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 
 # ▶2. Text to Image
 
+## ◎__TextToText.py__
 
+- __sd_texttoimg_pipeline( )__
+  - 설명1
+- __sd_texttoimg_function( )__ : 
+  - 설명 2
+
+- 사용예시
+
+  ```python
+  print('Input the Huggingface Token: ')
+  Huggingface_Token = input('')
+  token=Huggingface_Token
+  
+  print('Input the prompt: ')
+  prompt = input('')
+  
+  try:
+      pipe
+  except:
+      pipe = None
+  
+  pipe = sd_texttoimg_pipeline(pipe, token)
+  
+  image = sd_texttoimg_function(prompt)
+  ```
 
 ---
 
@@ -86,13 +111,24 @@ basecode : [How to Use DreamBooth to Fine-Tune Stable Diffusion (Colab)](https:/
 - __sd_imgtoimg_function(prompt, pipe, file_name, seed)__ :
   - 원하는 이미지를 업로드하고, prompt에 맞게 이미지를 바꿔주는 함수
 
----
-
 - __사용예시__
 
   ```python
-  prompt = str(input("프롬프트를 입력해주세요 : "))
-  img_to_img("1.5", prompt)
+  print('Input the Huggingface Token: ')
+  Huggingface_Token = input('')
+  token=Huggingface_Token
+  
+  print('Input the prompt: ')
+  prompt = input('')
+  
+  try:
+      pipe
+  except:
+      pipe = None
+  
+  pipe = sd_imgtoimg_pipeline(pipe, token)
+  
+  image = sd_imgtoimg_function(prompt, pipe, file_name, seed)
   ```
 
 ---
