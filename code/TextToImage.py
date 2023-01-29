@@ -22,7 +22,7 @@ def sd_texttoimg_pipeline(pipe, token):
     return pipe
 
 
-def sd_texttoimg_function(prompt, seed = None):
+def sd_texttoimg_function(pipe, prompt, seed = None):
     device = "cuda"
 
     if seed == None:

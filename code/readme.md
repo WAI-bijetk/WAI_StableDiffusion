@@ -18,37 +18,41 @@
 
   - 모델 : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
 
-    
+    <br>
 
 - __sd_custom_create_session( )__ :
 
   - input으로 넣어준 Session_Name에 맞춰 폴더를 생성해주는 함수
 
-    
+    <br>
 
 - __sd_custom_uploaded_image( )__ :
 
   - 이미지를 업로드하고, 이미지와 캡션을 분리해주는 함수
 
-    
+    <br>
 
 - __dump_only_textenc( )__ :
 
   - TextEncoder를 학습시켜주는 함수
 
-    
+    <br>
 
 - __train_only_unet ()__ :
 
   - UNet을 학습시켜주는 함수
 
-    
+    <br>
 
 - __sd_custom_function ()__ :
 
   - Fine Tuning을 해주는 함수
+
   - token과 Session_Name을 입력해줘야 한다.
+
   - 업로드하는 사진의 크기는  512*512 크기여야 하고, 이름은 prompt (1), prompt (2), prompt (3) ... 이런식으로 통일되어야 한다.
+
+    <br>
 
 - __사용예시__
 
@@ -70,16 +74,25 @@
 
 <br>
 
-## ◎__TextToText.py__
+## ◎ __TextToText.py__
 
 - __sd_texttoimg_pipeline( )__
-  - 설명1
+  - StableDiffusionPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
+  
+  - model : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
+  
+    <br>
+  
 - __sd_texttoimg_function( )__ : 
-  - 설명 2
+  - 작성한 prompt를 이미지로 바꿔주는 함수
 
-- 사용예시
+    <br>
+  
+- __사용예시__
 
   ```python
+  from TextToImage import sd_texttoimg_pipeline, sd_texttoimg_function
+  
   print('Input the Huggingface Token: ')
   Huggingface_Token = input('')
   token=Huggingface_Token
@@ -88,13 +101,12 @@
   prompt = input('')
   
   try:
-      pipe
+      image = sd_texttoimg_function(prompt)
   except:
       pipe = None
+      pipe = sd_texttoimg_pipeline(pipe, token)
+      image = sd_texttoimg_function(pipe, prompt)
   
-  pipe = sd_texttoimg_pipeline(pipe, token)
-  
-  image = sd_texttoimg_function(prompt)
   ```
 
 ---
@@ -110,31 +122,37 @@
 - __sd_imgtoimg_pipeline(pipe, token)__ : 
   - StableDiffusionImg2ImgPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
 
-  - model : [stabilityai/stable-diffusion-2-1-base](https://huggingface.co/stabilityai/stable-diffusion-2-1-base)
+  - model : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
 
-    
+    <br>
 
 - __sd_imgtoimg_function(prompt, pipe, file_name, seed)__ :
   - 원하는 이미지를 업로드하고, prompt에 맞게 이미지를 바꿔주는 함수
 
+    <br>
+  
 - __사용예시__
 
   ```python
+  from ImageToImage import sd_imgtoimg_pipeline, sd_imgtoimg_function
+  
   print('Input the Huggingface Token: ')
   Huggingface_Token = input('')
   token=Huggingface_Token
   
+  print('Input the file_name(or file_path): ') 
+  file_name = input('')
+  
   print('Input the prompt: ')
   prompt = input('')
   
+  
   try:
-      pipe
+  	image = sd_imgtoimg_function(prompt, pipe, file_name)
   except:
-      pipe = None
-  
-  pipe = sd_imgtoimg_pipeline(pipe, token)
-  
-  image = sd_imgtoimg_function(prompt, pipe, file_name, seed)
+  	pipe = None
+  	pipe = sd_imgtoimg_pipeline(pipe, token)
+  	image = sd_imgtoimg_function(prompt, pipe, file_name)
   ```
 
 ---
@@ -149,7 +167,7 @@
 
   - file_name에 있는 이미지를 불러온 뒤, (a, b) 좌표를 좌상단으로 하는 512*512 사이즈의 크롭이미지와 마스크를 만드는 함수
 
-    
+    <br>
 
 - __sd_extend_pipeline(pipe, token)__ : 
 
@@ -157,7 +175,7 @@
 
   - model : [runwayml/stable-diffusion-inpainting](https://huggingface.co/runwayml/stable-diffusion-inpainting)
 
-    
+    <br>
 
 - __sd_extend_result_img( )__ :
 

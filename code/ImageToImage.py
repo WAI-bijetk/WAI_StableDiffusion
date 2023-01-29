@@ -12,7 +12,7 @@ def sd_imgtoimg_pipeline(pipe, token):
         device = "cuda"
         accelerator = Accelerator()
         device = accelerator.device
-        model_path = "stabilityai/stable-diffusion-2"
+        model_path = "runwayml/stable-diffusion-v1-5"
 
         pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
             model_path,
@@ -26,7 +26,7 @@ def sd_imgtoimg_pipeline(pipe, token):
 # Img 2 Img 함수 선언
 
 def sd_imgtoimg_function(prompt, pipe, file_name, seed = None):
-    image = Image.open(file_name).convert("RGB").resize((768,512), resample=Image.LANCZOS)
+    image = Image.open(file_name).convert("RGB").resize((512,512), resample=Image.LANCZOS)
 
     device = "cuda"
 
