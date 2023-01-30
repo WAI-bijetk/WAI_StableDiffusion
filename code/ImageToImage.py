@@ -24,7 +24,7 @@ def sd_imgtoimg_pipeline(token):
 
 # Img 2 Img 함수 선언
 
-def sd_imgtoimg_function(prompt, pipe, file_name, seed = None):
+def sd_imgtoimg_function(prompt, pipe, file_name, strength, seed = None):
     image = Image.open(file_name).convert("RGB").resize((512,512), resample=Image.LANCZOS)
 
     device = "cuda"
@@ -36,6 +36,6 @@ def sd_imgtoimg_function(prompt, pipe, file_name, seed = None):
 
     generator = torch.Generator(device=device).manual_seed(seed_no)
     with autocast(device):
-        image = pipe(prompt=prompt, init_image=image, strength=0.6, guidance_scale=7.5, generator=generator).images[0]
+        image = pipe(prompt=prompt, init_image=image, strength=strength, guidance_scale=7.5, generator=generator).images[0]
 
     return image

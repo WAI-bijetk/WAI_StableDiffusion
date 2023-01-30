@@ -81,7 +81,7 @@
   	pipe = sd_imgtoimg_pipeline(token)
   	image = sd_imgtoimg_function(prompt, pipe, file_name)
    
-   image
+  image
   ```
 
 ---
