@@ -1,4 +1,155 @@
-# ▶1. Diffusion Custom Train (Fine Tuning)
+# ▶Text to Image
+
+<br>
+
+## ◎ __TextToText.py__
+
+- __sd_texttoimg_pipeline( )__
+  - StableDiffusionPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
+  
+  - model : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
+  
+    <br>
+  
+- __sd_texttoimg_function( )__ : 
+  - 작성한 prompt를 이미지로 바꿔주는 함수
+
+    <br>
+  
+- __사용예시__
+
+  ```python
+  from TextToImage import sd_texttoimg_pipeline, sd_texttoimg_function
+  
+  print('Input the Huggingface Token: ')
+  Huggingface_Token = input('')
+  token=Huggingface_Token
+  
+  print('Input the prompt: ')
+  prompt = input('')
+  
+  try:
+      image = sd_texttoimg_function(prompt)
+  except:
+      pipe = sd_texttoimg_pipeline(token)
+      image = sd_texttoimg_function(pipe, prompt)
+      
+  image
+  ```
+
+---
+
+# ▶Image to Image
+
+<br>
+
+업로드한 이미지를 prompt에 맞는 이미지로 변환시켜주는 모듈
+
+## ◎ __ImageToImage.py__
+
+- __sd_imgtoimg_pipeline(token)__ : 
+  - StableDiffusionImg2ImgPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
+
+  - model : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
+
+    <br>
+
+- __sd_imgtoimg_function(prompt, pipe, file_name, seed)__ :
+  - file_name의 이미지를 불러 온 뒤, 그 이미지를 prompt에 맞게 바꿔주는 함수
+
+    <br>
+  
+- __사용예시__
+
+  ```python
+  from ImageToImage import sd_imgtoimg_pipeline, sd_imgtoimg_function
+  
+  print('Input the Huggingface Token: ')
+  Huggingface_Token = input('')
+  token=Huggingface_Token
+  
+  print('Input the file_name(or file_path) of image: ') 
+  file_name = input('')
+  
+  print('Input the prompt: ')
+  prompt = input('')
+  
+  
+  try:
+  	image = sd_imgtoimg_function(prompt, pipe, file_name)
+  except:
+  	pipe = sd_imgtoimg_pipeline(token)
+  	image = sd_imgtoimg_function(prompt, pipe, file_name)
+   
+   image
+  ```
+
+---
+
+# ▶ImageExtend
+
+<br>
+
+## ◎ImageExtend.py
+
+- __sd_extend_crop_mask(file_name, a, b)__ :
+
+  - file_name에 있는 이미지를 불러온 뒤, (a, b) 좌표를 좌상단으로 하는 512*512 사이즈의 크롭이미지와 마스크를 만드는 함수
+
+    <br>
+
+- __sd_extend_pipeline(pipe, token)__ : 
+
+  - StableDiffusionInpaintPipeline이 선언 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
+
+  - model : [runwayml/stable-diffusion-inpainting](https://huggingface.co/runwayml/stable-diffusion-inpainting)
+
+    <br>
+
+- __sd_extend_result_img( )__ :
+
+  - crop된 이미지와 마스크를 기반으로 inpaint를 실행한 뒤, 원본 이미지와 inpaint된 이미지를 합치는 함수
+  
+    <br>
+
+- __sd_extend_function( )__ :
+
+  - file_name의 이미지를 불러온 뒤, (a, b)좌표를 기준으로 image Extend 후 output_name으로 결과물을 저장하는 함수
+
+    <br>
+
+- __사용예시__
+
+  ```python
+  from ImageExtend import sd_extend_pipeline, sd_extend_function
+  
+  print('Input the Huggingface Token: ')
+  token = input('')
+  
+  print('Input the file_name(or file_path) of image: ') 
+  file_name = input('')
+  
+  print('Input the prompt: ')
+  prompt = input('')
+  
+  print('Input the negative prompt: ')
+  negative_prompt = input('')
+  
+  print('Input the the x,y coordinates of the upper left vertex (ex. 325 410): ')
+  num_list = list(map(int,input('').split( )))
+  a, b = num_list[0], num_list[1]
+  
+  print('Input the output name (ex. output.png): ')
+  output_name = input('')
+  
+  try:
+  	sd_extend_function(pipe, file_name, prompt, negative_prompt, a, b, output_name, guidance_scale = 7.5)
+  except:
+      pipe = sd_extend_pipeline(token)
+      sd_extend_function(pipe, file_name, prompt, negative_prompt, a, b, output_name, guidance_scale = 7.5)
+  ```
+
+# ▶Diffusion Custom Train (Fine Tuning)
 
 <br>
 
@@ -38,13 +189,13 @@
 
     <br>
 
-- __train_only_unet ()__ :
+- __train_only_unet ( )__ :
 
   - UNet을 학습시켜주는 함수
 
     <br>
 
-- __sd_custom_function ()__ :
+- __sd_custom_function ( )__ :
 
   - Fine Tuning을 해주는 함수
 
@@ -70,118 +221,4 @@
 
 ---
 
-# ▶2. Text to Image
-
-<br>
-
-## ◎ __TextToText.py__
-
-- __sd_texttoimg_pipeline( )__
-  - StableDiffusionPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
-  
-  - model : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
-  
-    <br>
-  
-- __sd_texttoimg_function( )__ : 
-  - 작성한 prompt를 이미지로 바꿔주는 함수
-
-    <br>
-  
-- __사용예시__
-
-  ```python
-  from TextToImage import sd_texttoimg_pipeline, sd_texttoimg_function
-  
-  print('Input the Huggingface Token: ')
-  Huggingface_Token = input('')
-  token=Huggingface_Token
-  
-  print('Input the prompt: ')
-  prompt = input('')
-  
-  try:
-      image = sd_texttoimg_function(prompt)
-  except:
-      pipe = None
-      pipe = sd_texttoimg_pipeline(pipe, token)
-      image = sd_texttoimg_function(pipe, prompt)
-      
-  image
-  ```
-
----
-
-# ▶3. Image to Image
-
-<br>
-
-업로드한 이미지를 prompt에 맞는 이미지로 변환시켜주는 모듈
-
-## ◎ __ImageToImage.py__
-
-- __sd_imgtoimg_pipeline(pipe, token)__ : 
-  - StableDiffusionImg2ImgPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
-
-  - model : [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5)
-
-    <br>
-
-- __sd_imgtoimg_function(prompt, pipe, file_name, seed)__ :
-  - 원하는 이미지를 업로드하고, prompt에 맞게 이미지를 바꿔주는 함수
-
-    <br>
-  
-- __사용예시__
-
-  ```python
-  from ImageToImage import sd_imgtoimg_pipeline, sd_imgtoimg_function
-  
-  print('Input the Huggingface Token: ')
-  Huggingface_Token = input('')
-  token=Huggingface_Token
-  
-  print('Input the file_name(or file_path) of image: ') 
-  file_name = input('')
-  
-  print('Input the prompt: ')
-  prompt = input('')
-  
-  
-  try:
-  	image = sd_imgtoimg_function(prompt, pipe, file_name)
-  except:
-  	pipe = None
-  	pipe = sd_imgtoimg_pipeline(pipe, token)
-  	image = sd_imgtoimg_function(prompt, pipe, file_name)
-   
-   image
-  ```
-
----
-
-# ▶4. ImageExtend
-
-<br>
-
-## ◎ImageExtend.py
-
-- __sd_extend_crop_mask(file_name, a, b)__ :
-
-  - file_name에 있는 이미지를 불러온 뒤, (a, b) 좌표를 좌상단으로 하는 512*512 사이즈의 크롭이미지와 마스크를 만드는 함수
-
-    <br>
-
-- __sd_extend_pipeline(pipe, token)__ : 
-
-  - StableDiffusionInpaintPipeline이 선언 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
-
-  - model : [runwayml/stable-diffusion-inpainting](https://huggingface.co/runwayml/stable-diffusion-inpainting)
-
-    <br>
-
-- __sd_extend_result_img( )__ :
-
-  - crop된 이미지와 마스크를 기반으로 inpaint를 실행한 뒤, 원본 이미지와 inpaint된 이미지를 합치는 함수
-
- 
+# 

@@ -5,19 +5,18 @@ from diffusers import StableDiffusionPipeline
 from random import randint
 from accelerate import Accelerator
 
-def sd_texttoimg_pipeline(pipe, token):
-    if pipe == None:
-        device = "cuda"
-        accelerator = Accelerator()
-        device = accelerator.device
+def sd_texttoimg_pipeline(token):
+    device = "cuda"
+    accelerator = Accelerator()
+    device = accelerator.device
 
-        model_id = "runwayml/stable-diffusion-v1-5"
-        pipe = StableDiffusionPipeline.from_pretrained(
-            model_id,
-            revision = 'fp16', 
-            torch_dtype = torch.float16,
-            use_auth_token=token
-        ).to(device)
+    model_id = "runwayml/stable-diffusion-v1-5"
+    pipe = StableDiffusionPipeline.from_pretrained(
+        model_id,
+        revision = 'fp16', 
+        torch_dtype = torch.float16,
+        use_auth_token=token
+    ).to(device)
 
     return pipe
 

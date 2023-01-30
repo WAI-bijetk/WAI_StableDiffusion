@@ -47,20 +47,18 @@ def sd_extend_crop_mask(file_name, a, b):
 
     return extend_main_img, extend_crop, mask
 
-def sd_extend_pipeline(pipe, token):
-    if pipe == None:
-        print("없음")
-        device = "cuda"
-        accelerator = Accelerator()
-        device = accelerator.device
-        model_path = "runwayml/stable-diffusion-inpainting"
+def sd_extend_pipeline(token):
+    device = "cuda"
+    accelerator = Accelerator()
+    device = accelerator.device
+    model_path = "runwayml/stable-diffusion-inpainting"
 
-        pipe = StableDiffusionInpaintPipeline.from_pretrained(
-            model_path,
-            revision="fp16", 
-            torch_dtype=torch.float16,
-            use_auth_token=token
-        ).to(device)
+    pipe = StableDiffusionInpaintPipeline.from_pretrained(
+        model_path,
+        revision="fp16", 
+        torch_dtype=torch.float16,
+        use_auth_token=token
+    ).to(device)
     
     return pipe
 
@@ -112,5 +110,5 @@ def sd_extend_function(pipe, file_name, prompt, negative_prompt, a, b, output_na
     extend_img, image, mask_image = sd_extend_crop_mask(file_name, a, b)
 
     final_result = sd_extend_result_img(pipe, prompt, negative_prompt, guidance_scale, extend_img, image, mask_image, a, b, seed)
-    final_result.save(output_name, 'png')
+    final_result.save(output_name, output_name.split(".")[-1])
     return final_result

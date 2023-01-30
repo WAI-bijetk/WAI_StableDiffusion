@@ -6,21 +6,20 @@ from PIL import Image
 from random import randint
 from accelerate import Accelerator
 
-def sd_imgtoimg_pipeline(pipe, token):
-    if pipe == None:
-        # print("없음")
-        device = "cuda"
-        accelerator = Accelerator()
-        device = accelerator.device
-        model_path = "runwayml/stable-diffusion-v1-5"
+def sd_imgtoimg_pipeline(token):
+    
+    device = "cuda"
+    accelerator = Accelerator()
+    device = accelerator.device
+    model_path = "runwayml/stable-diffusion-v1-5"
 
-        pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-            model_path,
-            revision="fp16", 
-            torch_dtype=torch.float16,
-            use_auth_token=token
-        ).to(device)
-        
+    pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
+        model_path,
+        revision="fp16", 
+        torch_dtype=torch.float16,
+        use_auth_token=token
+    ).to(device)
+    
     return pipe
 
 # Img 2 Img 함수 선언
