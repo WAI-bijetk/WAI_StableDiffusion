@@ -106,7 +106,8 @@
       pipe = None
       pipe = sd_texttoimg_pipeline(pipe, token)
       image = sd_texttoimg_function(pipe, prompt)
-  
+      
+  image
   ```
 
 ---
@@ -140,7 +141,7 @@
   Huggingface_Token = input('')
   token=Huggingface_Token
   
-  print('Input the file_name(or file_path): ') 
+  print('Input the file_name(or file_path) of image: ') 
   file_name = input('')
   
   print('Input the prompt: ')
@@ -153,6 +154,8 @@
   	pipe = None
   	pipe = sd_imgtoimg_pipeline(pipe, token)
   	image = sd_imgtoimg_function(prompt, pipe, file_name)
+   
+   image
   ```
 
 ---
