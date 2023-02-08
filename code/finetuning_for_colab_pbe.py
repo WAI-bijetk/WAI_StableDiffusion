@@ -41,7 +41,7 @@ def sd_custom_environment():
     print('Done, proceed')
     
 
-def sd_custom_create_session(MODEL_NAME, SESSION_DIR, MDLPTH):
+def sd_custom_create_session(MODEL_NAME, SESSION_DIR, INSTANCE_DIR, MDLPTH):
     import os
     if os.path.exists(str(SESSION_DIR)) and not os.path.exists(MDLPTH):
         print('Loading session with no previous model, using the original model or the custom downloaded model')
@@ -124,62 +124,14 @@ def sd_custom_upload_image(SESSION_DIR, INSTANCE_DIR, CAPTIONS_DIR):
     shutil.make_archive('captions', 'zip', './captions')
     
     
-### Training Text Encoder
-def dump_only_textenc(trnonltxt, MODELT_NAME, INSTANCE_DIR, OUTPUT_DIR, PT, Seed, precision, Training_Steps):
-    !accelerate launch /content/diffusers/examples/dreambooth/train_dreambooth.py \
-    $trnonltxt \
-    --image_captions_filename \
-    --train_text_encoder \
-    --dump_only_text_encoder \
-    --pretrained_model_name_or_path="$MODELT_NAME" \
-    --instance_data_dir="$INSTANCE_DIR" \
-    --output_dir="$OUTPUT_DIR" \
-    --instance_prompt="$PT" \
-    --seed=$Seed \
-    --resolution=512 \
-    --mixed_precision=$precision \
-    --train_batch_size=1 \
-    --gradient_accumulation_steps=1 $GC \
-    --use_8bit_adam \
-    --learning_rate=$txlr \
-    --lr_scheduler="polynomial" \
-    --lr_warmup_steps=0 \
-    --max_train_steps=$Training_Steps
 
-### Training UNet
-def train_only_unet(stptxt, stpsv, stp, SESSION_DIR, MODELT_NAME, INSTANCE_DIR, OUTPUT_DIR, PT, Seed, Res, precision, Training_Steps):
-    !accelerate launch /content/diffusers/examples/dreambooth/train_dreambooth.py \
-    $Style \
-    $extrnlcptn \
-    --stop_text_encoder_training=$stptxt \
-    --image_captions_filename \
-    --train_only_unet \
-    --save_starting_step=$stpsv \
-    --save_n_steps=$stp \
-    --Session_dir=$SESSION_DIR \
-    --pretrained_model_name_or_path="$MODELT_NAME" \
-    --instance_data_dir="$INSTANCE_DIR" \
-    --output_dir="$OUTPUT_DIR" \
-    --captions_dir="$CAPTIONS_DIR" \
-    --instance_prompt="$PT" \
-    --seed=$Seed \
-    --resolution=$Res \
-    --mixed_precision=$precision \
-    --train_batch_size=1 \
-    --gradient_accumulation_steps=1 $GC \
-    --use_8bit_adam \
-    --learning_rate=$untlr \
-    --lr_scheduler="polynomial" \
-    --lr_warmup_steps=0 \
-    --max_train_steps=$Training_Steps
     
 
-def sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, INSTANCE_DIR, OUTPUT_DIR, Session_Name):
+def sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, SESSION_DIR, INSTANCE_DIR, OUTPUT_DIR, Session_Name, PT):
     import random
     import os
     import shutil
     os.chdir("/content")
-    Resume_Training = False
 
     MODELT_NAME=MODEL_NAME
     # UNet
@@ -194,8 +146,7 @@ def sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Tra
     stptxt=Text_Encoder_Training_Steps
     txlr=Text_Encoder_Learning_Rate
 
-    Enable_Text_Encoder_Concept_Training= False
-    Text_Encoder_Concept_Training_Steps=0
+
 
     # Seed
     Seed=""
@@ -207,9 +158,8 @@ def sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Tra
     trnonltxt=""
     extrnlcptn=""
     Style=""
-    Resolution = 512
+    Res = 512
 
-    fp16 = True
     prec="fp16"
     precision=prec
     GC="--gradient_checkpointing"
@@ -224,11 +174,12 @@ def sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Tra
 
 
     # Text Encoder Training
+    os.chdir("/content")
     if Enable_text_encoder_training :
         print('Training the text encoder...')
         if os.path.exists(OUTPUT_DIR+'/'+'text_encoder_trained'):
-            %rm -r $OUTPUT_DIR"/text_encoder_trained"
-        os.chdir("/content")
+            shutil.rmtree(OUTPUT_DIR+'/'+'text_encoder_trained')
+        
         dump_only_textenc(trnonltxt, MODELT_NAME, INSTANCE_DIR, OUTPUT_DIR, PT, Seed, precision, stptxt)
 
     # UNet Training
@@ -249,14 +200,22 @@ def sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Tra
     shutil.copyfile('/content/stable-diffusion-v1-5/model_index.json', OUTPUT_DIR + "/model_index.json")
 
 
-def sd_custom_function(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, INSTANCE_DIR, OUTPUT_DIR, Session_Name, MDLPH, CAPTIONS_DIR):
+def sd_custom_function(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name):
     import os
     import shutil
+    WORKSPACE='/content/gdrive/MyDrive/Fast-Dreambooth'
+    OUTPUT_DIR="/content/models/"+ Session_Name
+    SESSION_DIR=WORKSPACE+'/Sessions/'+ Session_Name
+    INSTANCE_DIR=SESSION_DIR+'/instance_images'
+    CAPTIONS_DIR=SESSION_DIR+'/captions'
+    MDLPTH=str(SESSION_DIR+"/"+ Session_Name+'.ckpt')
+    MODEL_NAME="/content/stable-diffusion-v1-5"
+    PT=""
     ### 1. Environment Setting
     sd_custom_environment()
 
     ### 2. Create Session
-    sd_custom_create_session(MODEL_NAME, SESSION_DIR, MDLPTH)
+    sd_custom_create_session(MODEL_NAME, SESSION_DIR, INSTANCE_DIR, MDLPTH)
 
     ### 3. Image Upload
     sd_custom_upload_image(SESSION_DIR, INSTANCE_DIR, CAPTIONS_DIR)
@@ -268,5 +227,6 @@ def sd_custom_function(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Tra
         print("The v1.5 model already exists, using this model.") 
 
     ### 5. Training
-    sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, INSTANCE_DIR, OUTPUT_DIR, Session_Name)
+    sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, SESSION_DIR, INSTANCE_DIR, OUTPUT_DIR, Session_Name, PT)
+    
 
