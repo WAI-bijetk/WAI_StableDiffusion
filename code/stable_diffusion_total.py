@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import getpass
 from torch import autocast
 from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline
 from PIL import Image
@@ -37,15 +38,14 @@ class Text_To_Image :
         if seed == "":
             seed_no = randint(1, 999999999)
         else:
-            seed_no = seed
+            seed_no = int(seed)
 
         generator = torch.Generator(device=device).manual_seed(seed_no)
         with autocast(device):
             image = pipe(prompt=prompt, generator=generator)['images'][0]
 
         return image
-    
-###################################################################################
+
 
 class Image_To_Image :
     
@@ -73,7 +73,7 @@ class Image_To_Image :
         
         return pipe
     
-    def sd_imgtoimg_function(self, prompt, pipe, file_name, strength, seed):
+    def sd_imgtoimg_function(self, pipe, prompt, file_name, strength, seed):
         image = Image.open(file_name).convert("RGB").resize((512,512), resample=Image.LANCZOS)
 
         device = "cuda"
@@ -81,11 +81,11 @@ class Image_To_Image :
         if seed == "":
             seed_no = randint(1, 999999999)
         else:
-            seed_no = seed
+            seed_no = int(seed)
 
         generator = torch.Generator(device=device).manual_seed(seed_no)
         with autocast(device):
-            image = pipe(prompt=prompt, init_image=image, strength=strength, guidance_scale=7.5, generator=generator).images[0]
+            image = pipe(prompt=prompt, image=image, strength=strength, guidance_scale=7.5, generator=generator).images[0]
 
         return image
     
@@ -161,7 +161,7 @@ class Image_Extend:
         if seed == "":
             seed = randint(0,9999999999)
         else:
-            seed = seed
+            seed = int(seed)
             
         device = "cuda"
         accelerator = Accelerator()
@@ -220,7 +220,7 @@ class Image_Extend:
 def text_to_image():
     
     print('Input the Huggingface Token: ')
-    Huggingface_Token = input('')
+    Huggingface_Token = getpass.getpass('')
     token=Huggingface_Token
 
     # Session Name
@@ -234,10 +234,10 @@ def text_to_image():
     diffusion = Text_To_Image(token, prompt, seed)
     
     try:
-        image = diffusion.sd_texttoimg_function(pipe, prompt, seed)
+        image = diffusion.sd_texttoimg_function(pipe_t2i, prompt, seed)
     except:
-        pipe = diffusion.sd_texttoimg_pipeline(token)
-        image = diffusion.sd_texttoimg_function(pipe, prompt, seed)
+        pipe_t2i = diffusion.sd_texttoimg_pipeline(token)
+        image = diffusion.sd_texttoimg_function(pipe_t2i, prompt, seed)
         
     return image
 
@@ -245,7 +245,7 @@ def text_to_image():
 def image_to_image():
     
     print('Input the Huggingface Token: ')
-    Huggingface_Token = input('')
+    Huggingface_Token = getpass.getpass('')
     token=Huggingface_Token
 
     print('Input the file_name(or file_path) of image: ') 
@@ -265,16 +265,17 @@ def image_to_image():
     diffusion = Image_To_Image(token, file_name, prompt, strength, seed)
     
     try:
-        image = diffusion.sd_imgtoimg_function(prompt, pipe, file_name, strength, seed)
+        image = diffusion.sd_imgtoimg_function(pipe_i2i, prompt, file_name, strength, seed)
     except:
-        pipe = diffusion.sd_imgtoimg_pipeline(token)
-        image = diffusion.sd_imgtoimg_function(prompt, pipe, file_name, strength, seed)
+        pipe_i2i = diffusion.sd_imgtoimg_pipeline(token)
+        image = diffusion.sd_imgtoimg_function(pipe_i2i, prompt, file_name, strength, seed)
         
     return image
 
+
 def image_extend():
     print('Input the Huggingface Token: ')
-    Huggingface_Token = input('')
+    Huggingface_Token = getpass.getpass('')
     token=Huggingface_Token
 
     print('Input the file_name(or file_path) of image: ') 
@@ -298,9 +299,9 @@ def image_extend():
     diffusion = Image_Extend(token, file_name, prompt, a, b, output_name, seed)
     
     try:
-        image = diffusion.sd_extend_function(pipe, file_name, prompt, a, b, output_name, seed)
+        image = diffusion.sd_extend_function(pipe_ie, file_name, prompt, a, b, output_name, seed)
     except:
-        pipe = diffusion.sd_extend_pipeline(token)
-        image = diffusion.sd_extend_function(pipe, file_name, prompt, a, b, output_name, seed)
+        pipe_ie = diffusion.sd_extend_pipeline(token)
+        image = diffusion.sd_extend_function(pipe_ie, file_name, prompt, a, b, output_name, seed)
         
     return image

@@ -2,7 +2,7 @@
 
 <br>
 
-## ◎ __TextToText.py__
+## ◎ __stable_diffusion_total.py__
 
 - __sd_texttoimg_pipeline( )__
   - StableDiffusionPipeline이 선언이 안되어 있을 경우, pretrained 된 pipeline을 불러오는 함수
@@ -19,22 +19,19 @@
 - __사용예시__
 
   ```python
-  from TextToImage import sd_texttoimg_pipeline, sd_texttoimg_function
+  !pip install -r requirements.txt -q
   
-  print('Input the Huggingface Token: ')
-  Huggingface_Token = input('')
-  token=Huggingface_Token
+  from stable_diffusion_total import text_to_image
   
-  print('Input the prompt: ')
-  prompt = input('')
+  text_to_image()
   
-  try:
-      image = sd_texttoimg_function(prompt)
-  except:
-      pipe = sd_texttoimg_pipeline(token)
-      image = sd_texttoimg_function(pipe, prompt)
-      
-  image
+  >>>> Input the Huggingface Token: 
+  >>>> ··········
+  >>>> Input the prompt: 
+  >>>> SF Movie, Zootopia, space
+  >>>> Input the prompt: 
+  >>>> If you want Random Seed, input Nothing.
+  >>>> 213
   ```
 
 ---
@@ -62,26 +59,24 @@
 - __사용예시__
 
   ```python
-  from ImageToImage import sd_imgtoimg_pipeline, sd_imgtoimg_function
+  !pip install -r requirements.txt -q
   
-  print('Input the Huggingface Token: ')
-  Huggingface_Token = input('')
-  token=Huggingface_Token
+  from stable_diffusion_total import image_to_image
   
-  print('Input the file_name(or file_path) of image: ') 
-  file_name = input('')
+  image_to_image()
   
-  print('Input the prompt: ')
-  prompt = input('')
-  
-  
-  try:
-  	image = sd_imgtoimg_function(prompt, pipe, file_name)
-  except:
-  	pipe = sd_imgtoimg_pipeline(token)
-  	image = sd_imgtoimg_function(prompt, pipe, file_name)
-   
-  image
+  >>>> Input the Huggingface Token: 
+  >>>> ··········
+  >>>> Input the file_name(or file_path) of image: 
+  >>>> /content/12344.jpg
+  >>>> Input the prompt: 
+  >>>> Harry Poter wearing a suit
+  >>>> Input the strength: 
+  >>>> Strength is recommended between 0.4 and 0.6.
+  >>>> 0.5
+  >>>> Input the seed: 
+  >>>> If you want Random Seed, input Nothing.
+  >>>>  
   ```
 
 ---
@@ -121,32 +116,26 @@
 - __사용예시__
 
   ```python
-  from ImageExtend import sd_extend_pipeline, sd_extend_function
+  !pip install -r requirements.txt -q
   
-  print('Input the Huggingface Token: ')
-  token = input('')
+  from stable_diffusion_total import image_extend
   
-  print('Input the file_name(or file_path) of image: ') 
-  file_name = input('')
+  image_extend()
   
-  print('Input the prompt: ')
-  prompt = input('')
-  
-  print('Input the negative prompt: ')
-  negative_prompt = input('')
-  
-  print('Input the the x,y coordinates of the upper left vertex (ex. 325 410): ')
-  num_list = list(map(int,input('').split( )))
-  a, b = num_list[0], num_list[1]
-  
-  print('Input the output name (ex. output.png): ')
-  output_name = input('')
-  
-  try:
-  	sd_extend_function(pipe, file_name, prompt, negative_prompt, a, b, output_name, guidance_scale = 7.5)
-  except:
-      pipe = sd_extend_pipeline(token)
-      sd_extend_function(pipe, file_name, prompt, negative_prompt, a, b, output_name, guidance_scale = 7.5)
+  >>>> Input the Huggingface Token: 
+  >>>> ··········
+  >>>> Input the file_name(or file_path) of image: 
+  >>>> /content/9984444A5BB495A00E.jfif
+  >>>> Input the prompt: 
+  >>>> Star Wars, meteor strike
+  >>>> Input the the x,y coordinates of the upper left vertex (ex. 325 410): 
+  >>>> 250 250
+  >>>> Input the Output Name: 
+  >>>> If you don't want save the result image, input Nothing.
+  >>>> 
+  >>>> Input the prompt: 
+  >>>> If you want Random Seed, input Nothing.
+  >>>> 
   ```
 
 # ▶Diffusion Custom Train (Fine Tuning)
