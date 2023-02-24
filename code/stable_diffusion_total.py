@@ -6,6 +6,8 @@ from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, S
 from PIL import Image
 from random import randint
 from accelerate import Accelerator
+import os
+import argparse
 
 
 class Text_To_Image :
@@ -44,15 +46,22 @@ class Text_To_Image :
         with autocast(device):
             image = pipe(prompt=prompt, generator=generator)['images'][0]
 
+        print("prompt : ", prompt)
+        print("seed : ", seed_no)
+        
+        output_path = os.getcwd() + "/TexttoImage"
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
+        
+        image.save(output_path + f"/T2I_{prompt}_{seed_no}.png", "png")
         return image
-
 
 class Image_To_Image :
     
     def __init__(self, token, file_name, prompt, strength, seed):
         self.token = token
         self.file_name = file_name
-        self.prompt = prompt
+        self.prompt = prompt      
         self.strength = strength
         self.seed = seed
         
@@ -78,7 +87,7 @@ class Image_To_Image :
 
         device = "cuda"
 
-        if seed == "":
+        if seed == "" or seed == None:
             seed_no = randint(1, 999999999)
         else:
             seed_no = int(seed)
@@ -86,20 +95,38 @@ class Image_To_Image :
         generator = torch.Generator(device=device).manual_seed(seed_no)
         with autocast(device):
             image = pipe(prompt=prompt, image=image, strength=strength, guidance_scale=7.5, generator=generator).images[0]
-
+        
+        print("kr_prompt : ", prompt)    
+        print("seed : ", seed_no)
+        
+        output_path = os.getcwd() + "/ImagetoImage"
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
+        
+        image.save(output_path + f"/I2I_{prompt}_{seed_no}.png", "png")
         return image
     
-###################################################################################    
+def image_to_image(token, prompt, file_name, strength, seed):
+    
+    diffusion = Image_To_Image(token, file_name, prompt, strength, seed)
+    
+    try:
+        image = diffusion.sd_imgtoimg_function(pipe_i2i, prompt, file_name, strength, seed)
+    except:
+        pipe_i2i = diffusion.sd_imgtoimg_pipeline(token)
+        image = diffusion.sd_imgtoimg_function(pipe_i2i, prompt, file_name, strength, seed)
+        
+    return image
+
 
 class Image_Extend:
     
-    def __init__(self, token, prompt, file_name, a, b, output_name, seed):
+    def __init__(self, token, prompt, file_name, a, b, seed):
         self.token = token
         self.prompt = prompt
         self.file_name = file_name
         self.a = a
         self.b = b
-        self.output_name = output_name
         self.seed = seed
     
     def sd_extend_pipeline(self, token):
@@ -158,15 +185,15 @@ class Image_Extend:
     
     def sd_extend_result_img(self, pipe, prompt, extend_img, image, mask_image, a, b, seed):
         num_samples = 1
-        if seed == "":
-            seed = randint(0,9999999999)
+        if seed == "" or seed == None:
+            seed_no = randint(0,9999999999)
         else:
-            seed = int(seed)
+            seed_no = int(seed)
             
         device = "cuda"
         accelerator = Accelerator()
         device = accelerator.device
-        generator = torch.Generator(device=device).manual_seed(seed) # change the seed to get different results
+        generator = torch.Generator(device=device).manual_seed(seed_no) # change the seed to get different results
 
         images = pipe(
             prompt=prompt,
@@ -196,34 +223,40 @@ class Image_Extend:
 
         result_img = Image.fromarray(extend_img_array)
         final_crop = result_img.crop((min(w_list),min(h_list),max(w_list),max(h_list)))
+        
+        print("prompt : ", prompt)    
+        print("seed : ", seed_no)
+        
+        output_path = os.getcwd() + "/ImageExtend"
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
+        
+        final_crop.save(output_path + f"/IEx_{prompt}_{seed_no}.png", "png")
         return final_crop
     
-    def sd_extend_function(self, pipe, file_name, prompt, a, b, output_name = "", seed = ""):
+    def sd_extend_function(self, pipe, file_name, prompt, a, b, seed = ""):
         
         extend_img, image, mask_image = self.sd_extend_crop_mask(file_name, a, b)
         
 
         final_result = self.sd_extend_result_img(pipe, prompt, extend_img, image, mask_image, a, b, seed)
             
-        if output_name == "":
-            return final_result
-        else:
-            final_result.save(output_name, output_name.split(".")[-1])
-            return final_result
+
+        return final_result
+
 
 class FineTuning:
     
-    def __init__(self, UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name):
+    def __init__(self, UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, INSTANCE_DIR):
         self.UNet_Training_Steps = UNet_Training_Steps, 
         self.UNet_Learning_Rate = UNet_Learning_Rate,
         self.Text_Encoder_Training_Steps = Text_Encoder_Training_Steps,
         self.Text_Encoder_Learning_Rate = Text_Encoder_Learning_Rate, 
         self.Session_Name = Session_Name
-        self.WORKSPACE='/content/gdrive/MyDrive/Fast-Dreambooth'
+        self.WORKSPACE='/content/Fast-Dreambooth'
         self.OUTPUT_DIR="/content/models/"+ Session_Name
         self.SESSION_DIR=self.WORKSPACE+'/Sessions/'+ Session_Name
-        self.INSTANCE_DIR=self.SESSION_DIR+'/instance_images'
-        self.CAPTIONS_DIR=self.SESSION_DIR+'/captions'
+        self.INSTANCE_DIR=INSTANCE_DIR
         self.MODEL_NAME="/content/stable-diffusion-v1-5"
         self.PT=""
         pass
@@ -296,7 +329,7 @@ class FineTuning:
 
         elif not os.path.exists(str(SESSION_DIR)):
             # %mkdir -p "$INSTANCE_DIR"
-            os.makedirs(INSTANCE_DIR)
+            os.makedirs(SESSION_DIR)
             self.line_logging('Creating session...')
             if MODEL_NAME=="":
                 self.line_logging('No model found, use the "Model Download" cell to download a model.')
@@ -316,45 +349,36 @@ class FineTuning:
             shutil.move(directory +"/"+old_name, directory + "/" + new_name)
             
     # Upload Image
-    def sd_custom_upload_image(self, SESSION_DIR, INSTANCE_DIR, CAPTIONS_DIR):
+    def sd_custom_upload_image(self, SESSION_DIR, INSTANCE_DIR, IMAGE_DIR):
         import shutil
         import os
+        from glob import glob
         from tqdm import tqdm
-        from google.colab import files
-        from IPython.display import clear_output
         
         self.line_logging("Start : Upload Image...")
-        
-        if os.path.exists(str(INSTANCE_DIR)):
-                shutil.rmtree(INSTANCE_DIR)
-        if os.path.exists(str(CAPTIONS_DIR)):
-            shutil.rmtree(CAPTIONS_DIR)
 
         if not os.path.exists(str(INSTANCE_DIR)):
             os.makedirs(INSTANCE_DIR)
-        if not os.path.exists(str(CAPTIONS_DIR)):
-            os.makedirs(CAPTIONS_DIR)
 
         if os.path.exists(INSTANCE_DIR+"/.ipynb_checkpoints"):
             shutil.rmtree(str(INSTANCE_DIR) + "/.ipynb_checkpoints")
             
-        up=""  
-        uploaded = files.upload()
+
+        # up=""  
+        # uploaded = files.upload()
         
-        # 캡션과 이미지 파일 분리
-        for filename in uploaded.keys():
-            if filename.split(".")[-1]=="txt":
-                shutil.move(filename, CAPTIONS_DIR)
-            up=[filename for filename in uploaded.keys() if filename.split(".")[-1]!="txt"]
+        # # 캡션과 이미지 파일 분리
+        # for filename in uploaded.keys():
+        #     if filename.split(".")[-1]=="txt":
+        #         shutil.move(filename, CAPTIONS_DIR)
+        #     up=[filename for filename in uploaded.keys() if filename.split(".")[-1]!="txt"]
             
         # 이미지 파일들 INST_DIR로 이동, bar_Format은 막대기 모양인듯
-        for filename in tqdm(uploaded.keys(), bar_format='  |{bar:15}| {n_fmt}/{total_fmt} Uploaded'):
-            shutil.move(filename, INSTANCE_DIR)
-            clear_output()
-        print('upload image Done, proceed to the next cell')
+        
+
         
         #d 이미지, 캡션 파일 이름의 빈칸을 "-"로 바꿔줌
-        for directory in [INSTANCE_DIR, CAPTIONS_DIR]:
+        for directory in [INSTANCE_DIR]:
             self.sd_custom_upload_image_replace(directory)  
         
         # 파일 압축  
@@ -362,11 +386,11 @@ class FineTuning:
         if os.path.exists("instance_images.zip"):
             os.remove("instance_images.zip")
             
-        if os.path.exists("captions.zip"):
-            os.remove("captions.zip")
+        # if os.path.exists("captions.zip"):
+        #     os.remove("captions.zip")
         
         shutil.make_archive('instance_images', 'zip', './instance_images')
-        shutil.make_archive('captions', 'zip', './captions')
+        # shutil.make_archive('captions', 'zip', './captions')
         
         self.line_logging("Done : Upload Image...")
         
@@ -405,7 +429,7 @@ class FineTuning:
                 self.line_logging('Model Download : Something went wrong')
                 
     # TextEnc, UNet Training
-    def sd_custom_training(self, UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, SESSION_DIR, INSTANCE_DIR, CAPTIONS_DIR, OUTPUT_DIR, Session_Name, PT):    
+    def sd_custom_training(self, UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, SESSION_DIR, INSTANCE_DIR, OUTPUT_DIR, Session_Name, PT):    
         self.line_logging("Start : Fine Tuning")
         import random
         import os
@@ -479,7 +503,7 @@ class FineTuning:
             --pretrained_model_name_or_path="{MODELT_NAME}" \
             --instance_data_dir="{INSTANCE_DIR}" \
             --output_dir="{OUTPUT_DIR}" \
-            --captions_dir="{CAPTIONS_DIR}" \
+            --captions_dir="" \
             --instance_prompt={PT} \
             --seed={Seed} \
             --resolution={Res} \
@@ -519,26 +543,25 @@ class FineTuning:
         self.line_logging("Done : FineTuning...")
     # Total Function
     
-    def sd_custom_function(self, UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name):
+    def sd_custom_function(self, UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, IMAGE_DIR):
         import os
         WORKSPACE='/content/gdrive/MyDrive/Fast-Dreambooth'
         OUTPUT_DIR="/content/models/"+ Session_Name
         SESSION_DIR=WORKSPACE+'/Sessions/'+ Session_Name
         INSTANCE_DIR=SESSION_DIR+'/instance_images'
-        CAPTIONS_DIR=SESSION_DIR+'/captions'
         MODEL_NAME="/content/stable-diffusion-v1-5"
         PT=""
         ### 1. Environment Setting
-        try:
-            import wget
-        except:
-            self.sd_custom_environment()
+        # try:
+        #     import wget
+        # except:
+        #     self.sd_custom_environment()
 
         ### 2. Create Session
         self.sd_custom_create_session(MODEL_NAME, SESSION_DIR, INSTANCE_DIR)
 
         ### 3. Image Upload
-        self.sd_custom_upload_image(SESSION_DIR, INSTANCE_DIR, CAPTIONS_DIR)
+        self.sd_custom_upload_image(SESSION_DIR, INSTANCE_DIR, IMAGE_DIR)
 
         ### 4. Model Download (진행중)
         if not os.path.exists('/content/stable-diffusion-v1-5'):
@@ -547,23 +570,11 @@ class FineTuning:
             print("The v1.5 model already exists, using this model.") 
 
         ### 5. Training
-        self.sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, SESSION_DIR, INSTANCE_DIR, CAPTIONS_DIR, OUTPUT_DIR, Session_Name, PT)
+        self.sd_custom_training(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, MODEL_NAME, SESSION_DIR, INSTANCE_DIR, OUTPUT_DIR, Session_Name, PT)
 
 
-def text_to_image():
-    
-    print('Input the Huggingface Token: ')
-    Huggingface_Token = getpass.getpass('')
-    token=Huggingface_Token
+def text_to_image(token, prompt, seed):
 
-    # Session Name
-    print('Input the prompt: ')
-    prompt = input('')
-
-    print('Input the prompt: ')
-    print('If you want Random Seed, input Nothing.')
-    seed = input('')
-    
     diffusion = Text_To_Image(token, prompt, seed)
     
     try:
@@ -572,28 +583,12 @@ def text_to_image():
         pipe_t2i = diffusion.sd_texttoimg_pipeline(token)
         image = diffusion.sd_texttoimg_function(pipe_t2i, prompt, seed)
         
+
+    
     return image
 
 
-def image_to_image():
-    
-    print('Input the Huggingface Token: ')
-    Huggingface_Token = getpass.getpass('')
-    token=Huggingface_Token
-
-    print('Input the file_name(or file_path) of image: ') 
-    file_name = input('')
-
-    print('Input the prompt: ')
-    prompt = input('')
-    
-    print('Input the strength: ')
-    print('Strength is recommended between 0.4 and 0.6.')
-    strength = float(input(''))
-    
-    print('Input the seed: ')
-    print('If you want Random Seed, input Nothing.')
-    seed = input('')
+def image_to_image(token, prompt, file_name, strength, seed):
     
     diffusion = Image_To_Image(token, file_name, prompt, strength, seed)
     
@@ -606,60 +601,127 @@ def image_to_image():
     return image
 
 
-def image_extend():
-    print('Input the Huggingface Token: ')
-    Huggingface_Token = getpass.getpass('')
-    token=Huggingface_Token
-
-    print('Input the file_name(or file_path) of image: ') 
-    file_name = input('')
-
-    print('Input the prompt: ')
-    prompt = input('')
+def image_extend(token, file_name, prompt, a, b, seed):
+    a = int(a)
+    b = int(b)
     
-    print('Input the the x,y coordinates of the upper left vertex (ex. 325 410): ')
-    num_list = list(map(int,input('').split( )))
-    a, b = num_list[0], num_list[1]
-    
-    print('Input the Output Name: ')
-    print("If you don't want save the result image, input Nothing.")
-    output_name = input('')
-    
-    print('Input the prompt: ')
-    print('If you want Random Seed, input Nothing.')
-    seed = input('')
-    
-    diffusion = Image_Extend(token, file_name, prompt, a, b, output_name, seed)
+    diffusion = Image_Extend(token, file_name, prompt, a, b, seed)
     
     try:
-        image = diffusion.sd_extend_function(pipe_ie, file_name, prompt, a, b, output_name, seed)
+        image = diffusion.sd_extend_function(pipe_ie, file_name, prompt, a, b, seed)
     except:
         pipe_ie = diffusion.sd_extend_pipeline(token)
-        image = diffusion.sd_extend_function(pipe_ie, file_name, prompt, a, b, output_name, seed)
+        image = diffusion.sd_extend_function(pipe_ie, file_name, prompt, a, b, seed)
         
     return image
 
-
-def fine_tuning():
-    print('Input the Session_Name: ')
-    Session_Name = input('')
-
-    print('Input the UNet Training Steps: ')
-    UNet_Training_Steps = input('')
+def fine_tuning_env(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, IMAGE_DIR):
     
-    print('Input the UNet Learning Rate: ')
-    print('Parameter : 2e-5, 1e-5, 9e-6, 8e-6, 7e-6, 6e-6, 5e-6, 4e-6, 3e-6, 2e-6')
-    UNet_Learning_Rate = input('')
+    diffusion = FineTuning(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, IMAGE_DIR)
     
-    print('Input the Text Encoder Training Steps: ')
-    print("200-450 steps is enough for a small dataset.")
-    print("keep this number small to avoid overfitting")
-    Text_Encoder_Training_Steps = input('')
+    diffusion.sd_custom_environment()
+        
+def fine_tuning(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, IMAGE_DIR):
 
-    print('Input the Text Encoder Learning Rate: ')
-    print('Parameter : 2e-5, 1e-5, 9e-6, 8e-6, 7e-6, 6e-6, 5e-6, 4e-6, 3e-6, 2e-6')
-    Text_Encoder_Learning_Rate = input('')
-
-    diffusion = FineTuning(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name)
+    diffusion = FineTuning(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, IMAGE_DIR)
     
-    diffusion.sd_custom_function(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name)
+    diffusion.sd_custom_function(UNet_Training_Steps, UNet_Learning_Rate, Text_Encoder_Training_Steps, Text_Encoder_Learning_Rate, Session_Name, IMAGE_DIR)
+    
+    
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--module",
+        required=True,
+        type=str
+    )
+    parser.add_argument(
+        "--token",
+        type=str
+    )
+    parser.add_argument(
+        "--prompt",
+        type=str
+    )
+    parser.add_argument(
+        "--file_name",
+        type=str
+    )
+    parser.add_argument(
+        "--seed",
+        default = None,
+        type=str
+    )
+    parser.add_argument(
+        "--strength",
+        type=str,
+        default="0.6"
+    )
+    parser.add_argument(
+        "--output_name",
+        type=str
+    )
+    parser.add_argument(
+        "--a",
+        type=str
+    )
+    parser.add_argument(
+        "--b",
+        type=str
+    )
+    parser.add_argument(
+        "--UNet_Training_Steps",
+        type=str
+    )
+    parser.add_argument(
+        "--UNet_Learning_Rate",
+        type=str
+    )
+    parser.add_argument(
+        "--Text_Encoder_Training_Steps",
+        type=str
+    )
+    parser.add_argument(
+        "--Text_Encoder_Learning_Rate",
+        type=str
+    )
+    parser.add_argument(
+        "--Session_Name",
+        type=str
+    )
+    parser.add_argument(
+        "--INSTANCE_DIR",
+        type=str
+    )
+    
+    args = parser.parse_args()
+    
+    return args
+
+
+def main():
+    args = parse_args()
+    
+    # Text to Image
+    if args.module == "texttoimage":
+        image = text_to_image(args.token, args.prompt, args.seed)
+        return image
+    
+    elif args.module == "imagetoimage":
+        image = image_to_image(args.token, args.prompt, args.file_name, float(args.strength), args.seed)
+        return image
+    
+    elif args.module == "imageextend":
+        image = image_extend(args.token, args.file_name, args.prompt, args.a, args.b, args.seed)
+        return image
+    elif args.module == "finetuning_env":
+        fine_tuning_env(args.UNet_Training_Steps, args.UNet_Learning_Rate, args.Text_Encoder_Training_Steps, args.Text_Encoder_Learning_Rate, args.Session_Name, args.INSTANCE_DIR)
+        
+    elif args.module == "finetuning":
+        fine_tuning(args.UNet_Training_Steps, args.UNet_Learning_Rate, args.Text_Encoder_Training_Steps, args.Text_Encoder_Learning_Rate, args.Session_Name, args.INSTANCE_DIR)
+    
+    else:
+        print("argument module must be 'texttoimage', 'imagetoimage', 'imageextend', 'finetuning'.")
+        
+if __name__ == "__main__":
+    main()
